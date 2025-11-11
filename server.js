@@ -9,7 +9,6 @@ app.use(cors());
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
-// ルーム管理
 const rooms = new Map();
 
 app.get('/', (req, res) => {
@@ -43,7 +42,6 @@ wss.on('connection', (ws) => {
         }));
         console.log('Room created:', roomId);
       }
-
       else if (data.type === 'join-room') {
         const roomId = data.roomId;
         const room = rooms.get(roomId);
@@ -68,7 +66,6 @@ wss.on('connection', (ws) => {
         currentRoom = roomId;
         playerRole = 2;
 
-        // 両プレイヤーにゲーム開始を通知
         room.players.forEach((client, index) => {
           if (client.readyState === 1) {
             client.send(JSON.stringify({
@@ -80,18 +77,15 @@ wss.on('connection', (ws) => {
         });
         console.log('Player joined room:', roomId);
       }
-
       else if (data.type === 'move') {
         const room = rooms.get(currentRoom);
         if (!room) return;
 
-        // 盤面状態を更新
         room.board = data.board;
         room.currentPlayer = data.currentPlayer;
         room.captured1 = data.captured1;
         room.captured2 = data.captured2;
 
-        // 相手プレイヤーに送信
         room.players.forEach((client) => {
           if (client !== ws && client.readyState === 1) {
             client.send(JSON.stringify({
@@ -105,7 +99,6 @@ wss.on('connection', (ws) => {
           }
         });
       }
-
       else if (data.type === 'reset') {
         const room = rooms.get(currentRoom);
         if (!room) return;
@@ -115,7 +108,6 @@ wss.on('connection', (ws) => {
         room.captured1 = [];
         room.captured2 = [];
 
-        // 両プレイヤーに通知
         room.players.forEach((client) => {
           if (client.readyState === 1) {
             client.send(JSON.stringify({
@@ -125,7 +117,6 @@ wss.on('connection', (ws) => {
           }
         });
       }
-
     } catch (error) {
       console.error('Error:', error);
     }
@@ -136,7 +127,6 @@ wss.on('connection', (ws) => {
     if (currentRoom) {
       const room = rooms.get(currentRoom);
       if (room) {
-        // 相手に切断を通知
         room.players.forEach((client) => {
           if (client !== ws && client.readyState === 1) {
             client.send(JSON.stringify({
@@ -144,7 +134,6 @@ wss.on('connection', (ws) => {
             }));
           }
         });
-        // ルームを削除
         rooms.delete(currentRoom);
       }
     }
@@ -155,5 +144,3 @@ const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-```
-
