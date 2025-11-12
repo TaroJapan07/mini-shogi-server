@@ -12,17 +12,18 @@ const wss = new WebSocketServer({ server });
 const rooms = new Map();
 
 app.get('/', (req, res) => {
-  res.send('Mini Shogi Server is running!');
+  res.send('Mini Shogi Server is running! WebSocket Ready.');
 });
 
 wss.on('connection', (ws) => {
-  console.log('New client connected');
+  console.log('✅ New client connected');
   let currentRoom = null;
   let playerRole = null;
 
   ws.on('message', (message) => {
     try {
       const data = JSON.parse(message.toString());
+      console.log('📩 Received message:', data.type);
 
       if (data.type === 'create-room') {
         const roomId = data.roomId;
@@ -40,7 +41,7 @@ wss.on('connection', (ws) => {
           type: 'room-created',
           roomId: roomId
         }));
-        console.log('Room created:', roomId);
+        console.log('🎮 Room created:', roomId);
       }
       else if (data.type === 'join-room') {
         const roomId = data.roomId;
@@ -75,7 +76,7 @@ wss.on('connection', (ws) => {
             }));
           }
         });
-        console.log('Player joined room:', roomId);
+        console.log('👥 Player joined room:', roomId);
       }
       else if (data.type === 'move') {
         const room = rooms.get(currentRoom);
@@ -118,12 +119,12 @@ wss.on('connection', (ws) => {
         });
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('❌ Error:', error);
     }
   });
 
   ws.on('close', () => {
-    console.log('Client disconnected');
+    console.log('👋 Client disconnected');
     if (currentRoom) {
       const room = rooms.get(currentRoom);
       if (room) {
@@ -135,12 +136,14 @@ wss.on('connection', (ws) => {
           }
         });
         rooms.delete(currentRoom);
+        console.log('🗑️ Room deleted:', currentRoom);
       }
     }
   });
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`📡 WebSocket server is ready`);
 });
